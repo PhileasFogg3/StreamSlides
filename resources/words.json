@@ -1,0 +1,32 @@
+[
+  {
+    "text": "Welcome to St Johns.",
+    "bold": true,
+    "underline": false,
+    "color": "#00ffff"
+  },
+  {
+    "text": "This is some bold text",
+    "bold": true,
+    "underline": false,
+    "color": "#FFFFFF"
+  },
+  {
+    "text": "This text is underlined",
+    "bold": false,
+    "underline": true,
+    "color": "#FFFFFF"
+  },
+  {
+    "text": "You can also change the colour of text",
+    "bold": false,
+    "underline": false,
+    "color": "#00ff40"
+  },
+  {
+    "text": "And have a combination of bold/underline and colours",
+    "bold": false,
+    "underline": false,
+    "color": "#ff8080"
+  }
+]

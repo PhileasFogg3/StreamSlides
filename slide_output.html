@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Slide Text</title>
+<style>
+  body {
+    margin: 0;
+    background: transparent;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 28px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: pre-wrap;
+    color: white;
+  }
+  #slideText {
+    white-space: pre-wrap;
+  }
+  .bold { font-weight: bold; }
+  .underline { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div id="slideText"></div>
+
+<script>
+  const slideTextDiv = document.getElementById("slideText");
+  let lastText = "";
+  let lastBold = false;
+  let lastUnderline = false;
+  let lastColor = "";
+
+  async function fetchSlideData() {
+    try {
+      const url = 'slide_data.json?_=' + new Date().getTime();  // cache buster
+      const response = await fetch(url, {cache: "no-store"});
+      if (!response.ok) throw new Error("Network response not OK");
+      const data = await response.json();
+
+      if (
+        data.text !== lastText ||
+        data.bold !== lastBold ||
+        data.underline !== lastUnderline ||
+        data.color !== lastColor
+      ) {
+        lastText = data.text;
+        lastBold = data.bold;
+        lastUnderline = data.underline;
+        lastColor = data.color || "white";
+
+        slideTextDiv.textContent = lastText;
+        slideTextDiv.className = "";
+        if (lastBold) slideTextDiv.classList.add("bold");
+        if (lastUnderline) slideTextDiv.classList.add("underline");
+        slideTextDiv.style.color = lastColor;
+      }
+    } catch (err) {
+      // Fail silently
+      console.error("Error fetching slide data:", err);
+    }
+  }
+
+  setInterval(fetchSlideData, 1000);
+  fetchSlideData();
+</script>
+</body>
+</html>
