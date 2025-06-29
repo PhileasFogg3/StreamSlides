@@ -5,25 +5,21 @@ import os
 import time
 import shutil
 import sys
+from pathlib import Path
 
-def resource_path(relative_path):
-    """ Get absolute path to resource inside PyInstaller bundle or dev folder. """
-    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
-    return os.path.join(base_path, relative_path)
+# Use the Documents folder
+DOCUMENTS_DIR = Path.home() / "Documents" / "StreamSlides"
+DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
-BASE_DIR = os.path.abspath(".")
-DEFAULT_WORDS = resource_path("resources/words.json")
-slide_file = os.path.join(BASE_DIR, "words.json")
-slide_data_file = os.path.join(BASE_DIR, "slide_data.json")  # JSON output for current slide
-html_output = os.path.join(BASE_DIR, "slide_output.html")
-backup_dir = os.path.join(BASE_DIR, "backups")
-
-# Create backup folder if not present
-if not os.path.exists(backup_dir):
-    os.makedirs(backup_dir)
+DEFAULT_WORDS = Path(getattr(sys, '_MEIPASS', '.')) / "resources" / "words.json"
+slide_file = DOCUMENTS_DIR / "words.json"
+output_file = DOCUMENTS_DIR / "slide_data.json"
+html_output = DOCUMENTS_DIR / "slide_output.html"
+backup_dir = DOCUMENTS_DIR / "backups"
+backup_dir.mkdir(exist_ok=True)
 
 # Copy default words.json if none exists
-if not os.path.exists(slide_file):
+if not slide_file.exists():
     shutil.copyfile(DEFAULT_WORDS, slide_file)
 
 slides = []
@@ -32,7 +28,7 @@ last_edit_time = time.time()
 
 def load_slides():
     global slides
-    if os.path.exists(slide_file):
+    if slide_file.exists():
         with open(slide_file, "r", encoding="utf-8") as f:
             slides = json.load(f)
     else:
@@ -42,32 +38,24 @@ def save_slides():
     with open(slide_file, "w", encoding="utf-8") as f:
         json.dump(slides, f, indent=2)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    shutil.copyfile(slide_file, os.path.join(backup_dir, f"words_backup_{timestamp}.json"))
+    shutil.copyfile(slide_file, backup_dir / f"words_backup_{timestamp}.json")
     autosave_label.config(text="Autosaved ✔", fg="green")
     root.after(2000, lambda: autosave_label.config(text=""))
 
 def write_current_slide():
-    # Write the current slide info as JSON for Streamlabs
-    current_slide = slides[current]
-    slide_data = {
-        "text": current_slide.get("text", ""),
-        "bold": current_slide.get("bold", False),
-        "underline": current_slide.get("underline", False),
-        "color": current_slide.get("color", "#FFFFFF")
-    }
-    with open(slide_data_file, "w", encoding="utf-8") as f:
-        json.dump(slide_data, f, indent=2)
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(slides[current], f)
     write_slide_html()
 
 def write_slide_html():
-    html_content = """<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Slide Text</title>
 <style>
-  body {
+  body {{
     margin: 0;
     background: transparent;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -76,12 +64,12 @@ def write_slide_html():
     text-align: center;
     white-space: pre-wrap;
     color: white;
-  }
-  #slideText {
+  }}
+  #slideText {{
     white-space: pre-wrap;
-  }
-  .bold { font-weight: bold; }
-  .underline { text-decoration: underline; }
+  }}
+  .bold {{ font-weight: bold; }}
+  .underline {{ text-decoration: underline; }}
 </style>
 </head>
 <body>
@@ -94,10 +82,10 @@ def write_slide_html():
   let lastUnderline = false;
   let lastColor = "";
 
-  async function fetchSlideData() {
-    try {
-      const url = 'slide_data.json?_=' + new Date().getTime();  // cache buster
-      const response = await fetch(url, {cache: "no-store"});
+  async function fetchSlideData() {{
+    try {{
+      const url = 'slide_data.json?_=' + new Date().getTime();
+      const response = await fetch(url, {{cache: "no-store"}});
       if (!response.ok) throw new Error("Network response not OK");
       const data = await response.json();
 
@@ -106,7 +94,7 @@ def write_slide_html():
         data.bold !== lastBold ||
         data.underline !== lastUnderline ||
         data.color !== lastColor
-      ) {
+      ) {{
         lastText = data.text;
         lastBold = data.bold;
         lastUnderline = data.underline;
@@ -117,19 +105,17 @@ def write_slide_html():
         if (lastBold) slideTextDiv.classList.add("bold");
         if (lastUnderline) slideTextDiv.classList.add("underline");
         slideTextDiv.style.color = lastColor;
-      }
-    } catch (err) {
-      // Fail silently
+      }}
+    }} catch (err) {{
       console.error("Error fetching slide data:", err);
-    }
-  }
+    }}
+  }}
 
   setInterval(fetchSlideData, 1000);
   fetchSlideData();
 </script>
 </body>
-</html>
-"""
+</html>"""
 
     with open(html_output, "w", encoding="utf-8") as f:
         f.write(html_content)
@@ -211,8 +197,7 @@ def refresh_slide_list():
         slide_listbox.insert(tk.END, get_slide_title(slide))
 
 def get_slide_title(slide):
-    title = slide['text'].strip().split('\n')[0]
-    return title[:30] + ("..." if len(title) > 30 else "")
+    return slide['text'].strip().split('\n')[0][:30] + ("..." if len(slide['text']) > 30 else "")
 
 def mark_text_edited(event=None):
     global last_edit_time
