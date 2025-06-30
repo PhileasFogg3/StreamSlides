@@ -20,6 +20,6 @@ Just download the exe, pop it in a folder of your choice and run it :) All the f
 Try disabling anti-virus if it doesn't like the file. 
 
 ## Future additions 
-I plan to add "Slide Decks". This will enable to you swap and change between different text slides. Right now you can get around this by changing the name of "words.json". Only the file called "words.json" will be picked up by the program. 
+Idk! Make suggestions if you have them :) 
 
 Any questions? Feel free to contact me :) 
